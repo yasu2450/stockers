@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:14
+    container_name: postgres
+    environment:
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-store:/var/lib/postgresql/data
+    restart: always
+  api:
+    build: api/
+    command: /bin/sh -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'" 
+    environment:
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./api:/app
+    depends_on:
+      - db
+  front:
+    build: front/
+    command: /bin/sh -c "yarn dev"
+    ports:
+      - "8000:3000"
+    volumes:
+      - ./front/app:/usr/src/app
+volumes:
+  db-store:
